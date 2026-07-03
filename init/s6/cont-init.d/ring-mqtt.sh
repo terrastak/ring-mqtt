@@ -1,7 +1,7 @@
 #!/command/with-contenv bashio
 
 # =============================================================================
-# ring-mqtt run script for s6-init               #
+# ring-mqtt run script for s6-init -              #
 #
 # This script automatically detects if it is running as the Home Assistant
 # addon or a standard docker environment and takes actions as appropriate
