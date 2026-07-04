@@ -6,6 +6,9 @@ import { spawn } from 'child_process'
 import { parseISO, addSeconds } from 'date-fns';
 import chalk from 'chalk'
 
+const LIGHT_INTENSITY_MIN = 1
+const LIGHT_INTENSITY_MAX = 10
+
 export default class Camera extends RingPolledDevice {
     constructor(deviceInfo, events) {
         super(deviceInfo, 'camera')
@@ -103,7 +106,11 @@ export default class Camera extends RingPolledDevice {
             ...this.device.hasLight ? {
                 light: {
                     state: null,
-                    setTime: Math.floor(Date.now()/1000)
+                    setTime: Math.floor(Date.now()/1000),
+                    ...this.hasLightIntensity() ? {
+                        brightness: null,
+                        brightnessSetTime: Math.floor(Date.now()/1000)
+                    } : {}
                 }
             } : {},
             ...this.device.hasSiren ? {
@@ -169,7 +176,8 @@ export default class Camera extends RingPolledDevice {
             } : {},
             ...this.device.hasLight ? {
                 light: {
-                    component: 'light'
+                    component: 'light',
+                    ...this.hasLightIntensity() ? { brightness_scale: 100 } : {}
                 }
             } : {},
             ...this.device.hasSiren ? {
@@ -587,6 +595,13 @@ export default class Camera extends RingPolledDevice {
             if ((lightState !== this.data.light.state && Date.now()/1000 - this.data.light.setTime > 30) || isPublish) {
                 this.data.light.state = lightState
                 this.mqttPublish(this.entity.light.state_topic, this.data.light.state)
+            }
+            if (this.hasLightIntensity()) {
+                const brightness = this.intensityToBrightness(this.device.data.settings.light_intensity)
+                if ((brightness !== this.data.light.brightness && Date.now()/1000 - this.data.light.brightnessSetTime > 30) || isPublish) {
+                    this.data.light.brightness = brightness
+                    this.mqttPublish(this.entity.light.brightness_state_topic, brightness)
+                }
             }
         }
         if (this.device.hasSiren) {
@@ -1102,6 +1117,9 @@ export default class Camera extends RingPolledDevice {
             case 'light/command':
                 this.setLightState(message)
                 break;
+            case 'light/brightness_command':
+                this.setLightBrightness(message)
+                break;
             case 'siren/command':
                 this.setSirenState(message)
                 break;
@@ -1153,6 +1171,62 @@ export default class Camera extends RingPolledDevice {
                 break;
             default:
                 this.debug('Received unknown command for light')
+        }
+    }
+
+    hasLightIntensity() {
+        return this.device.hasLight
+            && this.device.data.settings?.light_intensity !== undefined
+            && this.device.data.settings?.light_intensity !== null
+    }
+
+    intensityToBrightness(intensity) {
+        return (intensity * 10).toString()
+    }
+
+    brightnessToIntensity(brightness) {
+        return Math.max(LIGHT_INTENSITY_MIN, Math.min(LIGHT_INTENSITY_MAX, Math.round(brightness / 10)))
+    }
+
+    async setLightBrightness(message) {
+        if (!this.hasLightIntensity()) {
+            this.debug('Received light brightness command but device does not support light intensity')
+            return
+        }
+
+        this.debug(`Received set light brightness ${message}`)
+        const brightness = parseInt(message)
+
+        if (isNaN(brightness)) {
+            this.debug('Light brightness command received but not a number')
+        } else if (!(brightness >= 10 && brightness <= 100)) {
+            this.debug('Light brightness command received but out of range (10-100)')
+        } else {
+            const intensity = this.brightnessToIntensity(brightness)
+            try {
+                this.data.light.brightnessSetTime = Math.floor(Date.now()/1000)
+                await this.device.restClient.request({
+                    method: 'PUT',
+                    url: this.device.doorbotUrl('light_intensity'),
+                    json: { doorbot: { settings: { light_intensity: intensity } } }
+                })
+                this.data.light.brightness = this.intensityToBrightness(intensity)
+                this.mqttPublish(this.entity.light.brightness_state_topic, this.data.light.brightness)
+                this.device.updateData({
+                    ...this.device.data,
+                    settings: {
+                        ...this.device.data.settings,
+                        light_intensity: intensity
+                    }
+                })
+            } catch (err) {
+                if (err.message === 'Response code 404 (Not Found)') {
+                    this.debug('Shared accounts cannot change light brightness settings!')
+                } else {
+                    this.debug(chalk.yellow(err.message))
+                    this.debug(err.stack)
+                }
+            }
         }
     }
 
