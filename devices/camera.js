@@ -1175,6 +1175,9 @@ export default class Camera extends RingPolledDevice {
     }
 
     hasLightIntensity() {
+        this.debug(
+            `Camera settings: ${JSON.stringify(this.device.data.settings, null, 2)}`
+        )
         return this.device.hasLight
             && this.device.data.settings?.light_intensity !== undefined
             && this.device.data.settings?.light_intensity !== null
