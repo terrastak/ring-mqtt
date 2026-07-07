@@ -1209,13 +1209,21 @@ export default class Camera extends RingPolledDevice {
             this.debug('Light brightness command received but out of range (10-100)')
         } else {
             const intensity = this.brightnessToIntensity(brightness)
-            try {
+            try {                
                 this.data.light.brightnessSetTime = Math.floor(Date.now()/1000)
-                await this.device.restClient.request({
+
+                const url = this.device.doorbotUrl('light_intensity')
+                this.debug(`Setting Ring light intensity to ${intensity}`)
+                this.debug(`Light intensity URL: ${url}`)
+                
+                const response = await this.device.restClient.request({
                     method: 'PUT',
-                    url: this.device.doorbotUrl('light_intensity'),
+                    url,
                     json: { doorbot: { settings: { light_intensity: intensity } } }
                 })
+                
+                this.debug(`Light intensity API response: ${JSON.stringify(response)}`)                
+
                 this.data.light.brightness = this.intensityToBrightness(intensity)
                 this.mqttPublish(this.entity.light.brightness_state_topic, this.data.light.brightness)
                 this.device.updateData({
