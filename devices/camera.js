@@ -1174,12 +1174,63 @@ export default class Camera extends RingPolledDevice {
         }
     }
 
-    hasLightIntensity() {
-        this.debug(`device.hasLight = ${this.device.hasLight}`)
-        this.debug(`light_intensity = ${this.device.data.settings?.light_intensity}`)
-        this.debug(`settings keys = ${Object.keys(this.device.data.settings || {}).join(', ')}`)
+    debugLightIntensityData() {
+        if (!this.device.hasLight) {
+            return
+        }
     
-            return this.device.hasLight
+        const data = this.device.data || {}
+        const settings = data.settings || {}
+    
+        this.debug(`Light debug: hasLight=${this.device.hasLight}`)
+        this.debug(`Light debug: led_status=${data.led_status}`)
+        this.debug(`Light debug: data keys=${Object.keys(data).sort().join(', ')}`)
+        this.debug(`Light debug: settings keys=${Object.keys(settings).sort().join(', ')}`)
+    
+        const possiblePaths = {
+            'settings.light_intensity': settings.light_intensity,
+            'settings.light_brightness': settings.light_brightness,
+            'settings.led_brightness': settings.led_brightness,
+            'settings.led_intensity': settings.led_intensity,
+            'settings.floodlight_brightness': settings.floodlight_brightness,
+            'settings.floodlight_intensity': settings.floodlight_intensity,
+            'settings.light_motion_settings': settings.light_motion_settings,
+            'settings.light_settings': settings.light_settings,
+            'settings.led_settings': settings.led_settings,
+            'settings.floodlight_settings': settings.floodlight_settings,
+            'data.light_intensity': data.light_intensity,
+            'data.light_brightness': data.light_brightness,
+            'data.led_brightness': data.led_brightness,
+            'data.led_intensity': data.led_intensity,
+            'data.floodlight_brightness': data.floodlight_brightness,
+            'data.floodlight_intensity': data.floodlight_intensity
+        }
+    
+        Object.entries(possiblePaths).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                this.debug(`Light debug: ${key}=${JSON.stringify(value)}`)
+            }
+        })
+    
+        const matchingSettings = Object.entries(settings)
+            .filter(([key]) => key.toLowerCase().match(/light|led|brightness|intensity|flood/))
+    
+        if (matchingSettings.length > 0) {
+            this.debug(`Light debug: matching settings=${JSON.stringify(Object.fromEntries(matchingSettings))}`)
+        }
+    
+        const matchingData = Object.entries(data)
+            .filter(([key]) => key.toLowerCase().match(/light|led|brightness|intensity|flood/))
+    
+        if (matchingData.length > 0) {
+            this.debug(`Light debug: matching data=${JSON.stringify(Object.fromEntries(matchingData))}`)
+        }
+    }
+
+    hasLightIntensity() {
+        this.debugLightIntensityData()    
+        
+        return this.device.hasLight
             && this.device.data.settings?.light_intensity !== undefined
             && this.device.data.settings?.light_intensity !== null
     }
