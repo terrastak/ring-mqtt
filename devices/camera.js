@@ -8,6 +8,7 @@ import chalk from 'chalk'
 
 const LIGHT_INTENSITY_MIN = 1
 const LIGHT_INTENSITY_MAX = 10
+const LIGHT_BRIGHTNESS_SCALE = 100
 
 export default class Camera extends RingPolledDevice {
     constructor(deviceInfo, events) {
@@ -177,7 +178,7 @@ export default class Camera extends RingPolledDevice {
             ...this.device.hasLight ? {
                 light: {
                     component: 'light',
-                    ...this.hasLightIntensity() ? { brightness_scale: 100 } : {}
+                    ...this.hasLightIntensity() ? { brightness_scale: LIGHT_BRIGHTNESS_SCALE } : {}
                 }
             } : {},
             ...this.device.hasSiren ? {
@@ -1191,7 +1192,10 @@ export default class Camera extends RingPolledDevice {
     }
 
     brightnessToIntensity(brightness) {
-        return Math.max(LIGHT_INTENSITY_MIN, Math.min(LIGHT_INTENSITY_MAX, Math.round(brightness / 10)))
+        return Math.max(
+            LIGHT_INTENSITY_MIN, 
+            Math.min(LIGHT_INTENSITY_MAX, Math.round(brightness / 10))
+        )
     }
 
     async setLightBrightness(message) {
@@ -1212,18 +1216,12 @@ export default class Camera extends RingPolledDevice {
             try {                
                 this.data.light.brightnessSetTime = Math.floor(Date.now()/1000)
 
-                const url = this.device.doorbotUrl('light_intensity')
-                this.debug(`Setting Ring light intensity to ${intensity}`)
-                this.debug(`Light intensity URL: ${url}`)
-                
-                const response = await this.device.restClient.request({
+                await this.device.restClient.request({
                     method: 'PUT',
-                    url,
+                    url: this.device.doorbotUrl('light_intensity'),
                     json: { doorbot: { settings: { light_intensity: intensity } } }
                 })
                 
-                this.debug(`Light intensity API response: ${JSON.stringify(response)}`)                
-
                 this.data.light.brightness = this.intensityToBrightness(intensity)
                 this.mqttPublish(this.entity.light.brightness_state_topic, this.data.light.brightness)
                 this.device.updateData({
