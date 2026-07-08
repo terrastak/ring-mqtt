@@ -1207,9 +1207,7 @@ export default class Camera extends RingPolledDevice {
         this.debug(`Received set light brightness ${message}`)
         const brightness = parseInt(message)
 
-        if (isNaN(brightness)) {
-            this.debug('Light brightness command received but not a number')
-        } else if (!(brightness >= 10 && brightness <= 100)) {
+        if (!(brightness >= LIGHT_BRIGHTNESS_MIN && brightness <= LIGHT_BRIGHTNESS_MAX)) {
             this.debug('Light brightness command received but out of range (10-100)')
         } else {
             const intensity = this.brightnessToIntensity(brightness)
