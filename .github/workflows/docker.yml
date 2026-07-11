@@ -1,4 +1,4 @@
-name: Build and Push LightFix Docker Image
+name: Build and Publish Ring-MQTT LightFix Docker Image
 
 on:
   push:
@@ -17,16 +17,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Read Version
+      - name: Read Version From VERSION File
         run: |
           echo "VERSION=$(tr -d '[:space:]' < VERSION)" >> $GITHUB_ENV
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Sync Package Versions For Build
+        run: |
+          node -e "
+            const fs = require('fs');
+            for (const file of ['package.json', 'package-lock.json']) {
+              const json = JSON.parse(fs.readFileSync(file, 'utf8'));
+              json.version = process.env.VERSION;
+              fs.writeFileSync(file, JSON.stringify(json, null, 2) + '\n');
+            }
+          "
 
       - name: Set Docker Image Name
         run: |
@@ -37,6 +41,13 @@ jobs:
           echo "Image: $IMAGE"
           echo "Version: $VERSION"
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -45,9 +56,27 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ${{ env.IMAGE }}:${{ env.VERSION }}
-
+          tags: ${{ env.IMAGE }}:${{ env.VERSION }}
           build-args: |
             BUILD_VERSION=${{ env.VERSION }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
+
+      - name: Checkout add-on repository
+        uses: actions/checkout@v4
+        with:
+          repository: terrastak/ring-mqtt-ha-addon
+          ref: lightfix
+          token: ${{ secrets.ADDON_REPO_TOKEN }}
+          path: ring-mqtt-ha-addon
+
+      - name: Update add-on version
+        working-directory: ring-mqtt-ha-addon
+        run: |
+          sed -i "s/^version:.*/version: $VERSION/" config.yaml
+          if ! git diff --quiet -- config.yaml; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add config.yaml
+            git commit -m "Update add-on to $VERSION"
+            git push
+          fi

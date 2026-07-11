@@ -6,14 +6,14 @@ body:
   - type: checkboxes
     attributes:
       label: Is there an existing issue for this?
-      description: Please search [all open/closed issues](https://github.com/tsightler/ring-mqtt/issues?q=is%3Aissue+) for the bug you have encountered.
+      description: Please search [all open/closed issues - tsightler](https://github.com/tsightler/ring-mqtt/issues?q=is%3Aissue+) and [all open/closed issues - terrastak](https://github.com/terrastak/ring-mqtt/issues?q=is%3Aissue) for the bug you have encountered.
       options:
         - label: I have searched all existing open/closed issues
           required: true
   - type: checkboxes
     attributes:
       label: Is this really a bug?  If you don't have some way to confirm it is a bug, errors in the log, code that is clearly wrong, or at least a clear method to reproduce something that doesn't work, then it's not (yet) a bug.
-      description: Support questions or functional issues without proof should be posted in the appropriate [discussion groups](https://github.com/tsightler/ring-mqtt/discussions) 
+      description: Support questions or functional issues without proof should be posted in the appropriate [discussion groups for ring-mqtt](https://github.com/tsightler/ring-mqtt/discussions) and [brightness-specifi discussion groups for ring-mqtt-lightfix](https://github.com/terrastak/ring-mqtt/discussions)
         instead.  Note that issues posted in the dicussion group may be converted to bugs once confirmed.
       options:
         - label: I'm confident this is a bug and I have logs or other data to confirm it.
@@ -28,7 +28,7 @@ body:
   - type: checkboxes
     attributes:
       label: Did this issue start after an upgrade? 
-      description: If the issue appeared after an upgrade of ring-mqtt, please be sure to read the [release notes](https://github.com/tsightler/ring-mqtt/releases) for any mitigating information.
+      description: If the issue appeared after an upgrade of ring-mqtt, please be sure to read the [release notes - tsightler](https://github.com/tsightler/ring-mqtt/releases) and [release notes - terrastak](https://github.com/terrastak/ring-mqtt/releases) for any mitigating information.
       options:
         - label: This not an upgrade issue or I have read the release notes and performed any applicable steps that match my issue.
           required: true
@@ -36,7 +36,7 @@ body:
     attributes:
       label: Are you prepared to respond and provide all relevant information (logs, screenshots, etc)
       description: Please **DO NOT** open bugs if you are not prepared to provide logs or answer questions in a
-        timely manner (at least every few days)
+        timely manner (at least every few days).
       options:
         - label: I am prepared to provide logs, answer questions, and respond in a reasonable timeframe.
           required: true
@@ -62,7 +62,7 @@ body:
     id: Logs
     attributes:
       label: Log Output
-      placeholder: Please include the full ring-mqtt logs as they will be needed in almost all cases.  If you don't know how to post logs, please reconsider opening a bug as you probably don't have a bug, you have a support question.  If you decide to open an issue without providing logs, or providing only a snippet of logs, be prepared that the first response will likely be to provide full logs.  If you do not want to post full logs here due to privacy concerns, you can send them to my email using the same username (tsightler) at gmail, and reference the issue number.  If you do not know how to gather full logs for the addon see https://github.com/tsightler/ring-mqtt-ha-addon/blob/main/GET-LOGS.md
+      placeholder: Please include the full ring-mqtt logs as they will be needed in almost all cases.  If you don't know how to post logs, please reconsider opening a bug as you probably don't have a bug, you have a support question.  If you decide to open an issue without providing logs, or providing only a snippet of logs, be prepared that the first response will likely be to provide full logs.  If you do not want to post full logs here due to privacy concerns, you can send them [to my email brian@terrastak.com](mailto:brian@terrastak.com), and reference the issue number.  If you do not know how to gather full logs for the addon see [this guide](https://github.com/terrastak/ring-mqtt-ha-addon/blob/lightfix/GET-LOGS.md).
       render: shell
     validations:
       required: true

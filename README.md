@@ -1,6 +1,14 @@
-![ring-mqtt-logo](https://raw.githubusercontent.com/tsightler/ring-mqtt/dev/images/ring-mqtt-logo.png)
+![ring-mqtt-logo](https://raw.githubusercontent.com/terrastak/ring-mqtt/lightfix/images/ring-mqtt-logo.png)
 
 ## About
+This fork is an offshoot of the ring-mqtt project maintained by [tsightler](https://github.com/tsightler/ring-mqtt). Newer releases of some Ring cameras with integrated lights now support brightness control in 10% increments via the Ring API. This project publishes the brightness property via MQTT. Please note that brightness level changes do not happen locally and must go through the cloud Ring API. Therefore, it is recommended that changes to the brightness level be rate-limited like all other API calls.
+
+If you have any questions, concerns, bugs, etc, please reach out. Thanks for your support and more thanks to all those before me who pioneered the really hard work (kudos!).
+
+-B. Terrastak
+Github: (https://github.com/terrastak)
+
+### History
 Ring LLC sells security related products such as video doorbells, security cameras, alarm systems and smart lighting devices.  The ring-mqtt project uses the Ring API (the same one used by Ring official apps) to act as a bridge between these devices and an local MQTT broker, thus allowing any automation tools that can leverage the open standards based MQTT protocol to effectively integrate with these devices.  The project also supports video streaming by providing an RTSP gateway service that allows any media client supporting the RTSP protocol to connect to a Ring camera livestream or to play back recorded events (Ring Protect subscription required for event recording playback).  Please review the full list of [supported devices and features](https://github.com/tsightler/ring-mqtt/wiki#supported-devices-and-features) for more information on current capabilities.
 
 #### IMPORTANT NOTE - Please read
